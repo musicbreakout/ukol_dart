@@ -1,159 +1,117 @@
 import 'package:flutter/material.dart';
 
 void main() {
-  runApp(const MyApp());
+  runApp(const CounterApp());
 }
 
-class MyApp extends StatelessWidget {
-  const MyApp({super.key});
+class CounterApp extends StatelessWidget {
+  const CounterApp({super.key});
 
   @override
   Widget build(BuildContext context) {
-    return MaterialApp(
+    return const MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Můj To-Do List',
-      home: const HomePage(),
+      home: CounterScreen(),
     );
   }
 }
 
-class HomePage extends StatefulWidget {
-  const HomePage({super.key});
+class CounterScreen extends StatefulWidget {
+  const CounterScreen({super.key});
 
   @override
-  State<HomePage> createState() => _HomePageState();
+  State<CounterScreen> createState() => _CounterScreenState();
 }
 
-class _HomePageState extends State<HomePage> {
-  final TextEditingController _controller = TextEditingController();
-  final List<Map<String, dynamic>> _tasks = [];
+class _CounterScreenState extends State<CounterScreen> {
+  int _counter = 0;
+  Color _buttonColor = const Color.fromARGB(255, 173, 187, 199);
 
-  void _addTask() {
-    String text = _controller.text.trim();
-
-    if (text.isEmpty) {
-      ScaffoldMessenger.of(context).showSnackBar(
-        const SnackBar(content: Text('Zadej prosím úkol')),
-      );
-      return;
-    }
-
+  void _increment() {
     setState(() {
-      _tasks.add({'text': text, 'done': false});
-      _controller.clear();
+      _counter++;
+      _updateButtonColor();
     });
-
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Úkol přidán')),
-    );
   }
 
-  void _deleteTask(int index) {
-    final deletedTask = _tasks[index]['text'];
+  void _decrement() {
     setState(() {
-      _tasks.removeAt(index);
+      _counter--;
+      _updateButtonColor();
     });
-    debugPrint('Deleted: $deletedTask');
-    ScaffoldMessenger.of(context).showSnackBar(
-      const SnackBar(content: Text('Úkol smazán')),
-    );
+  }
+
+
+  void _reset() {
+    setState(() {
+      _counter = 0;
+      _updateButtonColor();
+    });
+  }
+
+  void _updateButtonColor() {
+    if (_counter % 10 == 0 && _counter != 0) {
+      _buttonColor = const Color.fromARGB(255, 175, 76, 125);
+    } else {
+      _buttonColor = const Color.fromARGB(255, 10, 2, 82);
+    }
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: const Text('Můj To-Do List'),
-        backgroundColor: Colors.blueAccent,
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16),
+      backgroundColor: const Color.fromARGB(255, 181, 174, 232),
+      body: Center(
         child: Column(
-          crossAxisAlignment: CrossAxisAlignment.start,
+          mainAxisAlignment: MainAxisAlignment.center,
           children: [
-            const Text(
-              'Můj To-Do List',
-              style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+            Text(
+              '$_counter',
+              style: const TextStyle(fontSize: 80, fontWeight: FontWeight.bold),
             ),
-            const SizedBox(height: 16),
-            const Text(
-              'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse rutrum dolor a fringilla feugiat',
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 8),
-            const Text(
-              'Lorem ipsum dolor sit amet, consectetur adipiscing elit. Suspendisse rutrum dolor a fringilla feugiat. Mauris ut dapibus enim, non ultrices massa.',
-              style: TextStyle(fontSize: 16),
-            ),
-            const SizedBox(height: 16),
-
-            // TextField + tlačítko
+            const SizedBox(height: 40),
             Row(
+              mainAxisAlignment: MainAxisAlignment.center,
               children: [
-                Expanded(
-                  child: TextField(
-                    controller: _controller,
-                    decoration: const InputDecoration(
-                      hintText: 'Zadej úkol…',
-                      border: OutlineInputBorder(),
-                    ),
+                ElevatedButton(
+                  onPressed: _decrement,
+                  style: ElevatedButton.styleFrom(
+                    shape: const CircleBorder(),
+                    padding: const EdgeInsets.all(24),
+                    backgroundColor: _buttonColor,
+                  ),
+                  child: const Text(
+                    '−',
+                    style: TextStyle(fontSize: 32, color: Color.fromARGB(255, 196, 133, 136)),
                   ),
                 ),
-                const SizedBox(width: 8),
+                const SizedBox(width: 20),
                 ElevatedButton(
-                  onPressed: _addTask,
-                  child: const Text('Přidat'),
+                  onPressed: _increment,
+                  style: ElevatedButton.styleFrom(
+                    shape: const CircleBorder(),
+                    padding: const EdgeInsets.all(24),
+                    backgroundColor: _buttonColor,
+                  ),
+                  child: const Text(
+                    '+',
+                    style: TextStyle(fontSize: 32, color: Color.fromARGB(255, 144, 92, 21)),
+                  ),
                 ),
               ],
             ),
-
-            const SizedBox(height: 16),
-
-            // Scrollovatelný seznam úkolů
-            Expanded(
-              child: ListView.separated(
-                itemCount: _tasks.length,
-                separatorBuilder: (context, index) => const SizedBox(height: 8),
-                itemBuilder: (context, index) {
-                  final task = _tasks[index];
-                  return Container(
-                    padding: const EdgeInsets.all(12),
-                    decoration: BoxDecoration(
-                      color: const Color.fromARGB(255, 95, 32, 32),
-                      borderRadius: BorderRadius.circular(8),
-                    ),
-                    child: Row(
-                      children: [
-                        Checkbox(
-                          value: task['done'],
-                          onChanged: (value) {
-                            setState(() {
-                              task['done'] = value!;
-                            });
-                          },
-                        ),
-                        Expanded(
-                          child: Text(
-                            task['text'],
-                            style: TextStyle(
-                              fontSize: 16,
-                              decoration: task['done']
-                                  ? TextDecoration.lineThrough
-                                  : TextDecoration.none,
-                            ),
-                          ),
-                        ),
-                        IconButton(
-                          icon: const Icon(Icons.delete),
-                          color: Colors.redAccent,
-                          onPressed: () => _deleteTask(index),
-                        ),
-                      ],
-                    ),
-                  );
-                },
+            const SizedBox(height: 40),
+            Align(
+              alignment: Alignment.bottomRight,
+              child: Padding(
+                padding: const EdgeInsets.only(right: 16.0, bottom: 16.0),
+                child: FloatingActionButton(
+                  onPressed: _reset,
+                  backgroundColor: Colors.red,
+                  child: const Text('X', style: TextStyle(fontSize: 24)),
+                ),
               ),
-            ),
+            )
           ],
         ),
       ),
